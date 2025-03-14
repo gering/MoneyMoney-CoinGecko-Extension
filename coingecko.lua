@@ -2,7 +2,7 @@
 -- Fetches balance from your crypto wallets using CoinGecko API
 --
 -- Specify your crypto wallet addresses as username
--- Username: BTC(addr), ETH(addr), SOL(addr), ...
+-- Username: BTC(addr1, addr2), ETH(addr3, addr4), SOL(addr5), ...
 --
 -- Copyright (c) 2024 Robert Gering
 --
@@ -25,7 +25,7 @@
 -- SOFTWARE.
 
 WebBanking {
-  version = 1.0,
+  version = 1.1,
   country = "de",
   url = "https://api.coingecko.com",
   description = string.format(MM.localizeText("Fetch balances from your crypto wallet using CoinGecko and list them as securities")),
@@ -148,11 +148,14 @@ end
 
 function fetchBalances(wallets)
   local balances = {}
-
-  for symbol, address in pairs(wallets) do
-    balances[symbol] = fetchBalance(symbol, address)
+  for symbol, address_list in pairs(wallets) do
+    local total_balance = 0
+    for _, address in ipairs(address_list) do
+      local balance = fetchBalance(symbol, address)
+      total_balance = total_balance + balance
+    end
+    balances[symbol] = total_balance
   end
-
   return balances
 end
 
@@ -218,12 +221,16 @@ end
 -- Helper
 
 -- Parse the username string and extract wallet addresses
--- Expected format: BTC(addr), ETH(addr), LTC(addr), ...
+-- Expected format: BTC(addr1, addr2), ETH(addr3, addr4), SOL(addr5), ...
 function parseAddresses(username)
   local addresses = {}
-  for symbol, address in string.gmatch(username, "([A-Z]+)%(([^)]+)%)") do
-    addresses[symbol:lower()] = address
-    MM.printStatus("Gefunden: " .. symbol:upper() .. " (" .. address .. ")")
+  for symbol, address_str in string.gmatch(username, "([A-Z]+)%(([^)]+)%)") do
+    local symbol_lower = symbol:lower()
+    addresses[symbol_lower] = {}
+    for address in string.gmatch(address_str, "%s*([^,]+)%s*") do
+      table.insert(addresses[symbol_lower], address)
+      MM.printStatus("Gefunden: " .. symbol:upper() .. " (" .. address .. ")")
+    end
   end
   return addresses
 end
@@ -262,4 +269,4 @@ function switch(symbol, address, cases)
   end
 end
 
--- SIGNATURE: MCwCFGR4645Bj339VDDAgV+8BT1XCtN/AhQLiclii9EguOpsp2mRKdAhKHoW4Q==
+-- SIGNATURE: MC0CFQCcd3uPGEqOj15Y50Bmk066SpwPhQIUbplE58iaWKO3pQIdtGTmXz3Xd9k=
