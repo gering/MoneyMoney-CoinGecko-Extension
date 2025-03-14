@@ -25,7 +25,7 @@
 -- SOFTWARE.
 
 WebBanking {
-  version = 1.0,
+  version = 1.1,
   country = "de",
   url = "https://api.coingecko.com",
   description = string.format(MM.localizeText("Fetch balances from your crypto wallet using CoinGecko and list them as securities")),
@@ -148,9 +148,9 @@ end
 
 function fetchBalances(wallets)
   local balances = {}
-  for symbol, addr_list in pairs(wallets) do
+  for symbol, address_list in pairs(wallets) do
     local total_balance = 0
-    for _, address in ipairs(addr_list) do
+    for _, address in ipairs(address_list) do
       local balance = fetchBalance(symbol, address)
       total_balance = total_balance + balance
     end
@@ -227,10 +227,10 @@ function parseAddresses(username)
   for symbol, address_str in string.gmatch(username, "([A-Z]+)%(([^)]+)%)") do
     local symbol_lower = symbol:lower()
     addresses[symbol_lower] = {}
-    for addr in string.gmatch(address_str, "%s*([^,]+)%s*") do
-      table.insert(addresses[symbol_lower], addr)
+    for address in string.gmatch(address_str, "%s*([^,]+)%s*") do
+      table.insert(addresses[symbol_lower], address)
+      MM.printStatus("Gefunden: " .. symbol:upper() .. " (" .. address .. ")")
     end
-    MM.printStatus("Gefunden: " .. symbol:upper() .. " (" .. table.concat(addresses[symbol_lower], ", ") .. ")")
   end
   return addresses
 end
@@ -269,4 +269,4 @@ function switch(symbol, address, cases)
   end
 end
 
--- SIGNATURE: MCwCFGR4645Bj339VDDAgV+8BT1XCtN/AhQLiclii9EguOpsp2mRKdAhKHoW4Q==
+-- SIGNATURE: MC0CFQCcd3uPGEqOj15Y50Bmk066SpwPhQIUbplE58iaWKO3pQIdtGTmXz3Xd9k=

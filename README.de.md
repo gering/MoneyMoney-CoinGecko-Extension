@@ -12,8 +12,17 @@ Diese Erweiterung für MoneyMoney ermöglicht es dir, deine Krypto-Assets direkt
 
 ## Einrichtung der Erweiterung
 
-1. Verwende das Symbol der Münze und die Adresse der Wallet.
-2. Gib diese Werte in das Benutzerfeld ein, getrennt durch einen Doppelpunkt.
+1. Verwende das Symbol der Münze und die Adresse(n) der Wallet. Du kannst mehrere Adressen pro Coin angeben, getrennt durch Kommas.  
+   Beispiel: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp)` oder `BTC(adresse1, adresse2, adresse3)`
+
+2. Gib diese Werte in das Benutzerfeld ein, getrennt durch Komma und Leerzeichen.
+   Beispiel: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp), ETH(0x6ea8F3531f785f369FAF6967A778f40215D1A3C7), SOL(Bozp16Pd8qNvZ6puw5Y6J9qkqTmUqtnojCoQE7PkBrt6)`
+
+   Für mehrere Adressen pro Coin:
+   Beispiel: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp, bc1q2nd3...3spz), ETH(0x6ea8...1A3C7, 0xA54b...5F7z)`
+
+   Bei der Verwendung mehrerer Adressen für einen einzelnen Coin-Typ werden die Guthaben aller Adressen addiert und als ein einziger Eintrag angezeigt.
+
 3. Setze das Passwort auf `123` oder einen anderen Wert, um von MoneyMoney nicht genervt zu werden.
 
 ## Unterstützte Coins
