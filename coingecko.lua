@@ -25,7 +25,7 @@
 -- SOFTWARE.
 
 WebBanking {
-  version = 1.0,
+  version = 1.1,
   country = "de",
   url = "https://api.coingecko.com",
   description = string.format(MM.localizeText("Fetch balances from your crypto wallet using CoinGecko and list them as securities")),
@@ -268,5 +268,3 @@ function switch(symbol, address, cases)
       return cases.default(symbol, address)
   end
 end
-
--- SIGNATURE: MCwCFGR4645Bj339VDDAgV+8BT1XCtN/AhQLiclii9EguOpsp2mRKdAhKHoW4Q==
