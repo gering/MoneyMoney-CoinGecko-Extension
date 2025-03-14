@@ -268,3 +268,5 @@ function switch(symbol, address, cases)
       return cases.default(symbol, address)
   end
 end
+
+-- SIGNATURE: MC0CFQCcd3uPGEqOj15Y50Bmk066SpwPhQIUbplE58iaWKO3pQIdtGTmXz3Xd9k=
