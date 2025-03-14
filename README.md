@@ -12,10 +12,16 @@ This extension for MoneyMoney allows you to easily track your crypto assets dire
 
 ## Extension Setup
 
-1. Use the symbol of the coin and the address of the wallet. Like so: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp)`
+1. Use the symbol of the coin and the address(es) of the wallet. You can specify multiple addresses per coin, separated by commas.  
+   Like so: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp)` or `BTC(address1, address2, address3)`
 
-2. Enter those values into the username field, separated by a colon.
+2. Enter those values into the username field, separated by a comma and space.
    e.g. `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp), ETH(0x6ea8F3531f785f369FAF6967A778f40215D1A3C7), SOL(Bozp16Pd8qNvZ6puw5Y6J9qkqTmUqtnojCoQE7PkBrt6)`
+
+   For multiple addresses per coin:
+   e.g. `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp, bc1q2nd3...3spz), ETH(0x6ea8...1A3C7, 0xA54b...5F7z)`
+
+   When using multiple addresses for a single coin type, the balances from all addresses will be added together and shown as a single entry.
 
 3. Set the password to `123` or any other value to avoid being nagged by MoneyMoney.
 
