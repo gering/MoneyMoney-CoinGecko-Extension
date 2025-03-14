@@ -148,9 +148,9 @@ end
 
 function fetchBalances(wallets)
   local balances = {}
-  for symbol, addr_list in pairs(wallets) do
+  for symbol, address_list in pairs(wallets) do
     local total_balance = 0
-    for _, address in ipairs(addr_list) do
+    for _, address in ipairs(address_list) do
       local balance = fetchBalance(symbol, address)
       total_balance = total_balance + balance
     end
@@ -227,10 +227,10 @@ function parseAddresses(username)
   for symbol, address_str in string.gmatch(username, "([A-Z]+)%(([^)]+)%)") do
     local symbol_lower = symbol:lower()
     addresses[symbol_lower] = {}
-    for addr in string.gmatch(address_str, "%s*([^,]+)%s*") do
-      table.insert(addresses[symbol_lower], addr)
+    for address in string.gmatch(address_str, "%s*([^,]+)%s*") do
+      table.insert(addresses[symbol_lower], address)
+      MM.printStatus("Gefunden: " .. symbol:upper() .. " (" .. address .. ")")
     end
-    MM.printStatus("Gefunden: " .. symbol:upper() .. " (" .. table.concat(addresses[symbol_lower], ", ") .. ")")
   end
   return addresses
 end
