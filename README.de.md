@@ -4,60 +4,110 @@
 
 Diese Erweiterung für MoneyMoney ermöglicht es dir, deine Krypto-Assets direkt in der MoneyMoney-Anwendung zu verfolgen.
 
-## Ziele dieser Erweiterung
+## 🚀 Hauptfunktionen
 
-- Eine einfache Möglichkeit bieten, deine Krypto-Assets in MoneyMoney zu verfolgen
-- APIs verwenden, die keine API-Schlüssel erfordern
-- Schließlich alle bekannten Kryptowährungen unterstützen
+- **Auto-Erkennung**: SOL Wallets erkennen automatisch alle SPL-Token
+- **Multi-Wallet-Support**: Verfolge mehrere Adressen pro Kryptowährung
+- **Keine API-Schlüssel nötig**: Nutzt kostenlose öffentliche APIs
+- **Echtzeitpreise**: Powered by CoinGecko Preisdaten
+- **Breite Kompatibilität**: Unterstützt Bitcoin, Ethereum, Solana + alle SPL-Token
 
 ## Einrichtung der Erweiterung
 
-1. Verwende das Symbol der Münze und die Adresse(n) der Wallet. Du kannst mehrere Adressen pro Coin angeben, getrennt durch Kommas.  
-   Beispiel: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp)` oder `BTC(adresse1, adresse2, adresse3)`
+1. **Wallet-Adressen konfigurieren**: Verwende das Coin-Symbol gefolgt von Wallet-Adresse(n) in Klammern:
+   ```
+   BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp)
+   ETH(0x6ea8F3531f785f369FAF6967A778f40215D1A3C7) 
+   SOL(Bozp16Pd8qNvZ6puw5Y6J9qkqTmUqtnojCoQE7PkBrt6)
+   ```
 
-2. Gib diese Werte in das Benutzerfeld ein, getrennt durch Komma und Leerzeichen.
-   Beispiel: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp), ETH(0x6ea8F3531f785f369FAF6967A778f40215D1A3C7), SOL(Bozp16Pd8qNvZ6puw5Y6J9qkqTmUqtnojCoQE7PkBrt6)`
+2. **In Benutzerfeld eingeben**: Kombiniere mehrere Wallets mit Komma und Leerzeichen:
+   ```
+   BTC(bc1q...), ETH(0x6ea8...), SOL(Bozp16...)
+   ```
 
-   Für mehrere Adressen pro Coin:
-   Beispiel: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp, bc1q2nd3...3spz), ETH(0x6ea8...1A3C7, 0xA54b...5F7z)`
+3. **Mehrere Adressen**: Für mehrere Adressen pro Coin, trenne mit Kommas:
+   ```
+   BTC(adresse1, adresse2), ETH(addr1, addr2)
+   ```
+   Guthaben von mehreren Adressen werden automatisch summiert.
 
-   Bei der Verwendung mehrerer Adressen für einen einzelnen Coin-Typ werden die Guthaben aller Adressen addiert und als ein einziger Eintrag angezeigt.
+4. **Beliebiges Passwort setzen**: Verwende `123` oder einen beliebigen Wert für MoneyMoney.
 
-3. Setze das Passwort auf `123` oder einen anderen Wert, um von MoneyMoney nicht genervt zu werden.
+## 🪙 **SOL Auto-Erkennung**
 
-## Unterstützte Coins
+**NEU**: Wenn du eine SOL Wallet hinzufügst, erkennt die Erweiterung automatisch ALLE SPL-Token in dieser Wallet! 
 
-Ich habe die folgenden Coins getestet:
+Einfach hinzufügen: `SOL(deine-wallet-adresse)` und erhalte:
+- ✅ SOL Guthaben
+- ✅ Alle SPL-Token (PSOL, BONK, USDC, mSOL, etc.)  
+- ✅ Echtzeitpreise für alle erkannten Token
+- ✅ Keine manuelle Konfiguration jedes Tokens nötig
 
-- BTC
-- ETH
-- SOL
+## Unterstützte Kryptowährungen
 
-Weitere Coins werden in Zukunft hinzugefügt. Falls ein Coin fehlt, den du benötigst, erstelle bitte ein Issue.
+### Native Blockchains
+- **Bitcoin (BTC)** - Direkte Guthaben-Abfrage
+- **Ethereum (ETH)** - Direkte Guthaben-Abfrage  
+- **Solana (SOL)** - Direkte Guthaben-Abfrage + **automatische SPL-Token-Erkennung**
+
+### SPL-Token (Solana)
+**Automatisch erkannt** wenn du eine SOL Wallet hinzufügst:
+- Alle SPL-Token mit Guthaben > 0
+- Beliebte Token: PSOL, BONK, USDC, USDT, mSOL, jSOL, RAY, etc.
+- Powered by Jupiter API für Token-Metadaten
+
+### ERC20-Token (Ethereum)
+- **USDT** - Manuelle Konfiguration erforderlich
+
+### Legacy-Unterstützung
+- LTC, DOGE, BCH, BSV, IOTA - Preisverfolgung über CoinGecko
 
 ## Welche APIs werden verwendet?
 
-- **CoinGecko** für die Preisdaten
-- **Blockcypher** für Bitcoin- und Ethereum-Guthaben
-- **Solana JSON-RPC** für Solana-Guthaben
+- **CoinGecko API** - Preisdaten für alle Kryptowährungen
+- **Blockcypher API** - Bitcoin- und Ethereum-Guthaben-Abfragen
+- **Solana JSON-RPC** - SOL-Guthaben und SPL-Token-Erkennung
+- **Jupiter API** - SPL-Token-Metadaten und CoinGecko-ID-Mapping
 
 ## Entwicklung
 
-### Was tun, wenn deine Münze nicht unterstützt wird
+### Was tun, wenn deine Kryptowährung nicht unterstützt wird
 
-Wenn deine Münze nicht unterstützt wird, kannst du beitragen, indem du die folgenden Schritte ausführst:
+**Für Native Coins (BTC, ETH, etc.):**
+Wenn deine Kryptowährung nicht unterstützt wird, kannst du beitragen:
 
-1. Forke dieses Repository.
-2. Füge Unterstützung für die neue Münze hinzu, indem du die `coins`-Tabelle aktualisierst und notwendige API-Aufrufe hinzufügst.
-3. Reiche einen Pull-Request mit einer detaillierten Beschreibung deiner Änderungen ein.
+1. Forke dieses Repository
+2. Füge die neue Münze zur `coins`-Tabelle hinzu (Name und CoinGecko-ID)
+3. Erweitere `nativeCoinConfig` mit der entsprechenden API-Konfiguration
+4. Implementiere ggf. eine neue Balance-Abfrage-Funktion
+5. Reiche einen Pull-Request mit detaillierter Beschreibung ein
+
+**Für SPL-Token (Solana):**
+Keine Arbeit nötig! SPL-Token werden automatisch erkannt, wenn sie in deiner SOL-Wallet sind.
+
+**Für ERC20-Token (Ethereum):**
+Für die häufigsten ERC20-Token können wir gerne Unterstützung hinzufügen:
+
+1. Erstelle ein Issue mit dem Token-Namen und Contract-Adresse
+2. Oder füge den Token zur `contractERC20Addresses`-Tabelle hinzu
+3. Reiche einen Pull-Request ein
 
 ### Wie du beitragen kannst
 
-1. Forke dieses Repository.
-2. Erstelle einen neuen Branch für dein Feature oder deinen Bugfix.
-3. Nimm deine Änderungen vor und committe sie mit klaren Nachrichten.
-4. Pushe deine Änderungen in deinen Fork.
-5. Öffne einen Pull-Request und beschreibe deine Änderungen im Detail.
+1. **Forke** dieses Repository
+2. **Erstelle** einen neuen Branch für dein Feature oder Bugfix
+3. **Implementiere** deine Änderungen mit klaren Commit-Nachrichten
+4. **Teste** deine Änderungen mit echten Wallet-Adressen
+5. **Pushe** deine Änderungen in deinen Fork
+6. **Öffne** einen Pull-Request mit detaillierter Beschreibung
+
+### Entwickler-Tipps
+
+- **Keine API-Schlüssel verwenden** - Die Extension soll kostenlos bleiben
+- **Fehlermeldungen auf Deutsch** - Nutze MM.localizeText wenn möglich
+- **Teste mit echten Wallets** - Verwende deine eigenen Adressen zum Testen
+- **Performance beachten** - Nur Token mit Guthaben > 0 anzeigen
 
 ## Spenden
 
