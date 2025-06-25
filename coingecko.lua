@@ -5,7 +5,7 @@
 -- Username: BTC(addr1, addr2), ETH(addr3, addr4), SOL(addr5), ...
 -- SOL automatically discovers all SPL tokens in the wallet!
 --
--- Copyright (c) 2024 Robert Gering
+-- Copyright (c) 2024-2025 Robert Gering
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 -- SOFTWARE.
 
 WebBanking {
-  version = 1.1,
+  version = 2.0,
   country = "de",
   url = "https://api.coingecko.com",
   description = string.format(MM.localizeText("Track Bitcoin, Ethereum, Solana + auto-discover all SPL tokens. Powered by CoinGecko prices.")),
@@ -389,5 +389,3 @@ function lookupCoin(symbol)
 
   return coin
 end
-
--- SIGNATURE: MC0CFQCcd3uPGEqOj15Y50Bmk066SpwPhQIUbplE58iaWKO3pQIdtGTmXz3Xd9k=
