@@ -4,42 +4,71 @@
 
 This extension for MoneyMoney allows you to easily track your crypto assets directly within the MoneyMoney application.
 
-## Goals of this extension
+## 🚀 Key Features
 
-- Provide a simple way to track your crypto assets in MoneyMoney
-- Use APIs that do not require API keys
-- Support all well-known cryptocurrencies eventually
+- **Auto-Discovery**: SOL wallets automatically discover all SPL tokens
+- **Multi-Wallet Support**: Track multiple addresses per cryptocurrency
+- **No API Keys Required**: Uses free public APIs
+- **Real-time Prices**: Powered by CoinGecko price data
+- **Wide Compatibility**: Supports Bitcoin, Ethereum, Solana + all SPL tokens
 
 ## Extension Setup
 
-1. Use the symbol of the coin and the address(es) of the wallet. You can specify multiple addresses per coin, separated by commas.  
-   Like so: `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp)` or `BTC(address1, address2, address3)`
+1. **Configure Wallet Addresses**: Use the coin symbol followed by wallet address(es) in parentheses:
+   ```
+   BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp)
+   ETH(0x6ea8F3531f785f369FAF6967A778f40215D1A3C7) 
+   SOL(Bozp16Pd8qNvZ6puw5Y6J9qkqTmUqtnojCoQE7PkBrt6)
+   ```
 
-2. Enter those values into the username field, separated by a comma and space.
-   e.g. `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp), ETH(0x6ea8F3531f785f369FAF6967A778f40215D1A3C7), SOL(Bozp16Pd8qNvZ6puw5Y6J9qkqTmUqtnojCoQE7PkBrt6)`
+2. **Enter in Username Field**: Combine multiple wallets with comma and space:
+   ```
+   BTC(bc1q...), ETH(0x6ea8...), SOL(Bozp16...)
+   ```
 
-   For multiple addresses per coin:
-   e.g. `BTC(bc1qtez37te8uk8mjfecdtqesg34qent6x04e467fp, bc1q2nd3...3spz), ETH(0x6ea8...1A3C7, 0xA54b...5F7z)`
+3. **Multiple Addresses**: For multiple addresses per coin, separate with commas:
+   ```
+   BTC(address1, address2), ETH(addr1, addr2)
+   ```
+   Balances from multiple addresses are automatically summed.
 
-   When using multiple addresses for a single coin type, the balances from all addresses will be added together and shown as a single entry.
+4. **Set Any Password**: Use `123` or any value to satisfy MoneyMoney requirements.
 
-3. Set the password to `123` or any other value to avoid being nagged by MoneyMoney.
+## 🪙 **SOL Auto-Discovery**
 
-## Supported Coins
+**NEW**: When you add a SOL wallet, the extension automatically discovers and tracks ALL SPL tokens in that wallet! 
 
-I've tested the following coins:
+Just add: `SOL(your-wallet-address)` and get:
+- ✅ SOL balance
+- ✅ All SPL tokens (PSOL, BONK, USDC, mSOL, etc.)  
+- ✅ Real-time prices for all discovered tokens
+- ✅ No need to manually add each token
 
-- BTC
-- ETH
-- SOL
+## Supported Cryptocurrencies
 
-More coins will be added in the future. If a coin you need is missing, please open an issue.
+### Native Blockchains
+- **Bitcoin (BTC)** - Direct balance fetching
+- **Ethereum (ETH)** - Direct balance fetching  
+- **Solana (SOL)** - Direct balance fetching + **automatic SPL token discovery**
+
+### SPL Tokens (Solana)
+**Automatically discovered** when you add a SOL wallet:
+- All SPL tokens with balance > 0
+- Popular tokens: PSOL, BONK, USDC, USDT, mSOL, jSOL, RAY, etc.
+- Powered by Jupiter API for token metadata
+
+### ERC20 Tokens (Ethereum)
+- **USDT** - Manual configuration required
+
+### Legacy Support
+- LTC, DOGE, BCH, BSV, IOTA - Price tracking via CoinGecko
 
 ## Which APIs are used?
 
-- **CoinGecko** for the price data
-- **Blockcypher** for Bitcoin and Ethereum balances
-- **Solana JSON-RPC** for Solana balances
+- **CoinGecko API** - Price data for all cryptocurrencies
+- **Blockcypher API** - Bitcoin and Ethereum balance queries
+- **Solana JSON-RPC** - SOL balances and SPL token discovery
+- **Jupiter API** - SPL token metadata and CoinGecko ID mapping
 
 ## Development
 

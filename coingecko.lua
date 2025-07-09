@@ -3,8 +3,9 @@
 --
 -- Specify your crypto wallet addresses as username
 -- Username: BTC(addr1, addr2), ETH(addr3, addr4), SOL(addr5), ...
+-- SOL automatically discovers all SPL tokens in the wallet!
 --
--- Copyright (c) 2024 Robert Gering
+-- Copyright (c) 2024-2025 Robert Gering
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +26,10 @@
 -- SOFTWARE.
 
 WebBanking {
-  version = 1.1,
+  version = 2.0,
   country = "de",
   url = "https://api.coingecko.com",
-  description = string.format(MM.localizeText("Fetch balances from your crypto wallet using CoinGecko and list them as securities")),
+  description = string.format(MM.localizeText("Track Bitcoin, Ethereum, Solana + auto-discover all SPL tokens. Powered by CoinGecko prices.")),
   services = { "CoinGecko" },
 }
 
@@ -39,6 +40,7 @@ local prices
 
 -- Constants
 local currency = "EUR"
+
 local coins = {
   btc = { id = "bitcoin", name = "Bitcoin" },
   eth = { id = "ethereum", name = "Ethereum" },
@@ -50,8 +52,25 @@ local coins = {
   usdt = { id = "tether", name = "Tether" },
   sol = { id = "solana", name = "Solana" },
 }
+
 local contractERC20Addresses = {
   usdt = "0xdac17f958d2ee523a2206206994597c13d831ec7"
+}
+
+-- Configuration for native coins and their fetch methods
+local nativeCoinConfig = {
+  btc = {
+    fetchMethod = "blockcypher",
+    decimals = 100000000  -- Satoshi to BTC
+  },
+  eth = {
+    fetchMethod = "blockcypher",
+    decimals = 1000000000000000000  -- Wei to ETH
+  },
+  sol = {
+    fetchMethod = "solana",
+    decimals = 1000000000  -- Lamports to SOL
+  }
 }
 
 function SupportsBank(protocol, bankCode)
@@ -65,11 +84,7 @@ function InitializeSession(protocol, bankCode, username, username2, password, us
     return LoginFailed
   end
 
-  prices = fetchPrices(wallets)
-  if prices == nil then
-    MM.printStatus("Preise konnten nicht geladen werden")
-    return LoginFailed
-  end
+  -- Prices will be fetched in RefreshAccount after token discovery
 end
 
 function ListAccounts(knownAccounts)
@@ -88,11 +103,30 @@ function RefreshAccount(account, since)
   local s = {}
   local balances = fetchBalances(wallets)
 
+  -- Now fetch prices for all discovered coins (including dynamic SPL tokens)
+  prices = fetchPrices(balances)
+  if prices == nil then
+    MM.printStatus("Preise konnten nicht geladen werden")
+    return {}
+  end
+
   for symbol, balance in pairs(balances) do
     local coin = lookupCoin(symbol)
+    if not coin then
+      MM.printStatus("Coin nicht gefunden: " .. symbol:upper())
+      goto continue
+    end
+
     local name = coin.name .. " (" .. symbol:upper() .. ")"
     MM.printStatus("Verarbeite: " .. name .. ") ")
-    local price = prices[coin.id].eur
+
+    local priceData = prices[coin.id]
+    if not priceData or not priceData.eur then
+      MM.printStatus("Keine Preisdaten für: " .. coin.id)
+      goto continue
+    end
+
+    local price = priceData.eur
     local amount = balance * price
 
     table.insert(s, {
@@ -103,6 +137,8 @@ function RefreshAccount(account, since)
       currency = nil,
       amount = amount
     })
+
+    ::continue::
   end
 
   return {securities = s}
@@ -129,12 +165,20 @@ function fetchAllCoins()
   return coins
 end
 
-function fetchPrices(wallets)
+function fetchPrices(balances)
   MM.printStatus("Lade Preise von CoinGecko")
 
   local ids = {}
-  for symbol in pairs(wallets) do
-    table.insert(ids, lookupCoin(symbol).id)
+  for symbol in pairs(balances) do
+    local coin = lookupCoin(symbol)
+    if coin and coin.id then
+      table.insert(ids, coin.id)
+    end
+  end
+
+  if #ids == 0 then
+    MM.printStatus("Keine gültigen Coin-IDs gefunden")
+    return {}
   end
 
   local connection = Connection()
@@ -150,36 +194,63 @@ function fetchBalances(wallets)
   local balances = {}
   for symbol, address_list in pairs(wallets) do
     local total_balance = 0
-    for _, address in ipairs(address_list) do
-      local balance = fetchBalance(symbol, address)
-      total_balance = total_balance + balance
+
+    if symbol == "sol" then
+      -- Special handling for SOL: get SOL balance + all SPL tokens
+      for _, address in ipairs(address_list) do
+        -- Add SOL balance
+        local solBalance = fetchBalance(symbol, address)
+        total_balance = total_balance + solBalance
+
+        -- Find all SPL tokens for this wallet
+        local tokens = fetchAllSolanaTokens(address)
+        for mintAddress, tokenBalance in pairs(tokens) do
+          -- Get token info from Jupiter
+          local tokenInfo = fetchTokenInfoFromJupiter(mintAddress)
+          if tokenInfo then
+            -- Store token balance with symbol as key
+            local tokenSymbol = tokenInfo.symbol:lower()
+            balances[tokenSymbol] = (balances[tokenSymbol] or 0) + tokenBalance
+
+            -- Add token to coins registry for price lookup
+            if not coins[tokenSymbol] then
+              coins[tokenSymbol] = tokenInfo
+            end
+          end
+        end
+      end
+      balances[symbol] = total_balance
+    else
+      -- Regular token handling
+      for _, address in ipairs(address_list) do
+        local balance = fetchBalance(symbol, address)
+        total_balance = total_balance + balance
+      end
+      balances[symbol] = total_balance
     end
-    balances[symbol] = total_balance
   end
   return balances
 end
 
 function fetchBalance(symbol, address)
-  local connection = Connection()
-  local url
+  -- Check if it's a native coin
+  local nativeConfig = nativeCoinConfig[symbol]
+  if nativeConfig then
+    if nativeConfig.fetchMethod == "blockcypher" then
+      local rawBalance = fetchBlockcypherBalance(symbol, address)
+      return rawBalance / nativeConfig.decimals
+    elseif nativeConfig.fetchMethod == "solana" then
+      return fetchSolanaBalance(symbol, address)
+    end
+  end
 
-  return switch(symbol, address, {
-      btc = function(coin, address)
-        local satoshi = fetchBlockcypherBalance(coin, address)
-        return satoshi / 100000000 -- Convert Satoshi to BTC
-      end,
-      eth = function(coin, address)
-        local wei = fetchBlockcypherBalance(coin, address)
-        return wei / 1000000000000000000 -- Convert Wei to ETH
-      end,
-      sol = fetchSolanaBalance,
-      erc20 = fetchERC20Balance,
-      usdt = fetchERC20Balance,
-      default = function(coin, address)
-          MM.printStatus("Nicht unterstützer Coin: " .. coin:upper())
-          return 0
-      end
-  })
+  -- Check if it's an ERC20 token
+  if contractERC20Addresses[symbol] then
+    return fetchERC20Balance(symbol, address)
+  end
+
+  MM.printStatus("Nicht unterstützter Coin: " .. symbol:upper())
+  return 0
 end
 
 function fetchBlockcypherBalance(symbol, address)
@@ -200,20 +271,80 @@ function fetchSolanaBalance(symbol, address)
       params = {address}
   }
   local content = connection:request("POST", url, JSON():set(payload):json(), "application/json")
-  return JSON(content):dictionary()["result"]["value"] / 1000000000 -- Convert Lamports to SOL
+  local lamports = JSON(content):dictionary()["result"]["value"]
+  local decimals = nativeCoinConfig[symbol] and nativeCoinConfig[symbol].decimals or 1000000000
+  return lamports / decimals
 end
+
+function fetchAllSolanaTokens(address)
+  MM.printStatus("Lade alle Token für SOL Wallet")
+  local connection = Connection()
+  local url = "https://api.mainnet-beta.solana.com"
+
+  -- Get all token accounts for this wallet
+  local payload = {
+      jsonrpc = "2.0", id = 1,
+      method = "getTokenAccountsByOwner",
+      params = {
+          address,
+          {programId = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"},
+          {encoding = "jsonParsed"}
+      }
+  }
+
+  local content = connection:request("POST", url, JSON():set(payload):json(), "application/json")
+  local result = JSON(content):dictionary()
+  local tokens = {}
+
+  if result["result"] and result["result"]["value"] then
+      for _, tokenAccount in ipairs(result["result"]["value"]) do
+          local mintAddress = tokenAccount["account"]["data"]["parsed"]["info"]["mint"]
+          local balance = tonumber(tokenAccount["account"]["data"]["parsed"]["info"]["tokenAmount"]["uiAmount"]) or 0
+
+          if balance > 0 then  -- Only include tokens with balance
+              tokens[mintAddress] = balance
+          end
+      end
+  end
+
+  return tokens
+end
+
+function fetchTokenInfoFromJupiter(mintAddress)
+  MM.printStatus("Lade Token Info für " .. mintAddress:sub(1, 8) .. "...")
+  local connection = Connection()
+  local url = "https://lite-api.jup.ag/tokens/v1/token/" .. mintAddress
+  local content = connection:request("GET", url)
+  local tokenInfo = JSON(content):dictionary()
+
+  if tokenInfo and tokenInfo["symbol"] and tokenInfo["name"] then
+      -- Try to get CoinGecko ID from extensions, fallback to mint address
+      local coingeckoId = mintAddress  -- Default fallback
+      if tokenInfo["extensions"] and tokenInfo["extensions"]["coingeckoId"] then
+          coingeckoId = tokenInfo["extensions"]["coingeckoId"]
+      end
+
+      return {
+          symbol = tokenInfo["symbol"],
+          name = tokenInfo["name"],
+          id = coingeckoId
+      }
+  end
+
+  return nil
+end
+
 
 function fetchERC20Balance(symbol, address)
   MM.printStatus("Lade " .. symbol:upper() .. " Bestand von CoinGecko API")
+  local connection = Connection()
   local contractAddress = contractERC20Addresses[symbol]
   if contractAddress then
-      url = string.format("https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=%s&vs_currencies=%s", contractAddress, currency:lower())
+      local url = string.format("https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=%s&vs_currencies=%s", contractAddress, currency:lower())
       local content = connection:request("GET", url)
       local json = JSON(content)
       local balance = json:dictionary()[contractAddress] and json:dictionary()[contractAddress][currency:lower()]
-      if balance then
-          return balance
-      end
+      return tonumber(balance) or 0
   end
   return 0
 end
@@ -259,14 +390,4 @@ function lookupCoin(symbol)
   return coin
 end
 
-function switch(symbol, address, cases)
-  local case = cases[symbol]
-  if case then
-      return case(symbol, address)
-  end
-  if cases.default then
-      return cases.default(symbol, address)
-  end
-end
-
--- SIGNATURE: MC0CFQCcd3uPGEqOj15Y50Bmk066SpwPhQIUbplE58iaWKO3pQIdtGTmXz3Xd9k=
+-- SIGNATURE: MC0CFQChuawHomRm7VIp8xTEVNOB3L5QBgIUFLxmuAbfocj9lZNZDcJapn4/wgA=
