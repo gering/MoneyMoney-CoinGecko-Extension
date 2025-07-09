@@ -389,3 +389,5 @@ function lookupCoin(symbol)
 
   return coin
 end
+
+-- SIGNATURE: MC0CFQChuawHomRm7VIp8xTEVNOB3L5QBgIUFLxmuAbfocj9lZNZDcJapn4/wgA=
