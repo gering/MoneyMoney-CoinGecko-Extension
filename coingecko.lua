@@ -26,7 +26,7 @@
 -- SOFTWARE.
 
 WebBanking {
-  version = 2.0,
+  version = 2.1,
   country = "de",
   url = "https://api.coingecko.com",
   description = string.format(MM.localizeText("Track Bitcoin, Ethereum, Solana + auto-discover all SPL tokens. Powered by CoinGecko prices.")),
