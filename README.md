@@ -55,7 +55,7 @@ Just add: `SOL(your-wallet-address)` and get:
 **Automatically discovered** when you add a SOL wallet:
 - All SPL tokens with balance > 0
 - Popular tokens: PSOL, BONK, USDC, USDT, mSOL, jSOL, RAY, etc.
-- Powered by Jupiter API for token metadata
+- Automatically matched with CoinGecko for pricing
 
 ### ERC20 Tokens (Ethereum)
 - **USDT** - Manual configuration required
@@ -65,10 +65,9 @@ Just add: `SOL(your-wallet-address)` and get:
 
 ## Which APIs are used?
 
-- **CoinGecko API** - Price data for all cryptocurrencies
+- **CoinGecko API** - Price data and token metadata for all cryptocurrencies
 - **Blockcypher API** - Bitcoin and Ethereum balance queries
 - **Solana JSON-RPC** - SOL balances and SPL token discovery
-- **Jupiter API** - SPL token metadata and CoinGecko ID mapping
 
 ## Development
 
