@@ -26,7 +26,7 @@
 -- SOFTWARE.
 
 WebBanking {
-  version = 2.0,
+  version = 2.1,
   country = "de",
   url = "https://api.coingecko.com",
   description = string.format(MM.localizeText("Track Bitcoin, Ethereum, Solana + auto-discover all SPL tokens. Powered by CoinGecko prices.")),
@@ -36,7 +36,9 @@ WebBanking {
 -- State
 local wallets
 local allCoins
+local allCoinsById  -- Mapping of CoinGecko ID -> coin data
 local prices
+local solanaTokenMap  -- Mapping of Solana mint address -> CoinGecko ID
 
 -- Constants
 local currency = "EUR"
@@ -151,16 +153,36 @@ end
 -- API Functions
 
 function fetchAllCoins()
-  MM.printStatus("Lade Crypto Coins von CoinGecko")
+  -- Return cached data if already loaded
+  if allCoins and allCoinsById and solanaTokenMap then
+    return allCoins
+  end
+
+  MM.printStatus("Lade Coin-Liste von CoinGecko")
 
   local connection = Connection()
-  local content = connection:request("GET", "https://api.coingecko.com/api/v3/coins/list")
+  local content = connection:request("GET", "https://api.coingecko.com/api/v3/coins/list?include_platform=true")
   local coinList = JSON(content):dictionary()
   local coins = {}
+  local coinsById = {}
+  local solanaMap = {}
 
+  local solanaTokenCount = 0
   for _, coin in ipairs(coinList) do
     coins[coin.symbol] = coin
+    coinsById[coin.id] = coin  -- Index by ID for lookup
+
+    -- Build Solana mint address -> CoinGecko ID mapping
+    if coin.platforms and coin.platforms.solana and coin.platforms.solana ~= "" then
+      solanaMap[coin.platforms.solana] = coin.id
+      solanaTokenCount = solanaTokenCount + 1
+    end
   end
+
+  -- Cache for the session
+  allCoins = coins
+  allCoinsById = coinsById
+  solanaTokenMap = solanaMap
 
   return coins
 end
@@ -205,8 +227,8 @@ function fetchBalances(wallets)
         -- Find all SPL tokens for this wallet
         local tokens = fetchAllSolanaTokens(address)
         for mintAddress, tokenBalance in pairs(tokens) do
-          -- Get token info from Jupiter
-          local tokenInfo = fetchTokenInfoFromJupiter(mintAddress)
+          -- Get token info from CoinGecko
+          local tokenInfo = fetchTokenInfoFromCoinGecko(mintAddress)
           if tokenInfo then
             -- Store token balance with symbol as key
             local tokenSymbol = tokenInfo.symbol:lower()
@@ -310,24 +332,25 @@ function fetchAllSolanaTokens(address)
   return tokens
 end
 
-function fetchTokenInfoFromJupiter(mintAddress)
-  MM.printStatus("Lade Token Info für " .. mintAddress:sub(1, 8) .. "...")
-  local connection = Connection()
-  local url = "https://lite-api.jup.ag/tokens/v1/token/" .. mintAddress
-  local content = connection:request("GET", url)
-  local tokenInfo = JSON(content):dictionary()
+function fetchTokenInfoFromCoinGecko(mintAddress)
+  -- Ensure CoinGecko token map is loaded (will use cache if already loaded)
+  fetchAllCoins()
 
-  if tokenInfo and tokenInfo["symbol"] and tokenInfo["name"] then
-      -- Try to get CoinGecko ID from extensions, fallback to mint address
-      local coingeckoId = mintAddress  -- Default fallback
-      if tokenInfo["extensions"] and tokenInfo["extensions"]["coingeckoId"] then
-          coingeckoId = tokenInfo["extensions"]["coingeckoId"]
-      end
+  -- Lookup token by mint address in CoinGecko's Solana platform mapping
+  local coingeckoId = solanaTokenMap[mintAddress]
 
+  if not coingeckoId then
+      return nil
+  end
+
+  -- Lookup token by ID in allCoinsById
+  local tokenInfo = allCoinsById[coingeckoId]
+
+  if tokenInfo then
       return {
-          symbol = tokenInfo["symbol"],
-          name = tokenInfo["name"],
-          id = coingeckoId
+          symbol = tokenInfo.symbol:upper(),
+          name = tokenInfo.name,
+          id = tokenInfo.id
       }
   end
 
@@ -390,4 +413,4 @@ function lookupCoin(symbol)
   return coin
 end
 
--- SIGNATURE: MC0CFQChuawHomRm7VIp8xTEVNOB3L5QBgIUFLxmuAbfocj9lZNZDcJapn4/wgA=
+-- SIGNATURE: MC4CFQCiAIuMzYtxAfKikuSJlXC2wk2oMgIVAI8fKN0LWcHRFxO449ODkf/M6ulZ
